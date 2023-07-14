@@ -1,7 +1,9 @@
 ﻿using Nrsc5Sharp.Entities;
+using Nrsc5Sharp.Entities.SIG;
 using Nrsc5Sharp.Enums;
 using Nrsc5Sharp.Exceptions;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static Nrsc5Sharp.Nrsc5Native;
 
@@ -32,7 +34,7 @@ namespace Nrsc5Sharp
         public delegate void SyncEventArgs(Nrsc5 radio);
         public delegate void LostSyncEventArgs(Nrsc5 radio);
         public delegate void Id3EventArgs(Nrsc5 radio, IId3EventInfo info);
-        public delegate void SigEventArgs(Nrsc5 radio);
+        public delegate void SigEventArgs(Nrsc5 radio, IReadOnlyList<ISigService> services);
         public delegate void LotEventArgs(Nrsc5 radio, ILotCompletedInfo info);
         public delegate void SisEventArgs(Nrsc5 radio);
         public delegate void LotProgressEventArgs(Nrsc5 radio, ILotProgressInfo info);
@@ -281,7 +283,7 @@ namespace Nrsc5Sharp
                     OnId3?.Invoke(this, new Nrsc5EntityWrappers.Id3EventInfoImpl(&evt->id3));
                     break;
                 case Nrsc5Native.NRSC5_EVENT.NRSC5_EVENT_SIG:
-                    //TODO
+                    OnSig?.Invoke(this, SigNativeAdapter.Convert(evt->sig.services));
                     break;
                 case Nrsc5Native.NRSC5_EVENT.NRSC5_EVENT_LOT:
                     {

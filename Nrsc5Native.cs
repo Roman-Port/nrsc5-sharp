@@ -22,13 +22,13 @@ namespace Nrsc5Sharp
             [FieldOffset(PTR_SIZE + 1)]
             public byte id;
 
-            [FieldOffset(PTR_SIZE + 1 + 1)]
+            [FieldOffset(PTR_SIZE + 4)]
             public data_t data;
 
-            [FieldOffset(PTR_SIZE + 1 + 1)]
+            [FieldOffset(PTR_SIZE + 4)]
             public audio_t audio;
 
-            [StructLayout(LayoutKind.Auto)]
+            [StructLayout(LayoutKind.Sequential)]
             public struct data_t
             {
                 public ushort port;
@@ -37,7 +37,7 @@ namespace Nrsc5Sharp
                 public uint mime;
             }
 
-            [StructLayout(LayoutKind.Auto)]
+            [StructLayout(LayoutKind.Sequential)]
             public struct audio_t
             {
                 public byte port;
@@ -46,14 +46,14 @@ namespace Nrsc5Sharp
             }
         }
 
-        [StructLayout(LayoutKind.Auto)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct nrsc5_sig_service_t
         {
-            public IntPtr next; //Ptr to nrsc5_sig_service_t
+            public nrsc5_sig_service_t* next;
             public byte type;
             public ushort number;
             public IntPtr name; //Ptr to string
-            public IntPtr components; //Ptr to nrsc5_sig_component_t
+            public nrsc5_sig_component_t* components;
         }
 
         public enum NRSC5_EVENT
@@ -115,6 +115,7 @@ namespace Nrsc5Sharp
             NRSC5_PROGRAM_TYPE_SPECIAL_READING_SERVICES = 76
         }
 
+        [StructLayout(LayoutKind.Sequential)]
         public struct nrsc5_sis_asd_t
         {
             public IntPtr next; //Ptr to nrsc5_sis_asd_t
@@ -146,6 +147,7 @@ namespace Nrsc5Sharp
             NRSC5_SERVICE_DATA_TYPE_AUDIO_RELATED_DATA = 265
         }
 
+        [StructLayout(LayoutKind.Sequential)]
         public struct nrsc5_sis_dsd_t
         {
             public IntPtr next; //Ptr to nrsc5_sis_dsd_t
@@ -202,23 +204,27 @@ namespace Nrsc5Sharp
             [FieldOffset(OFFSET)]
             public lot_progress_t lot_progress;
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct iq_t
             {
                 public IntPtr data;
                 public IntPtr count; //integer
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct ber_t
             {
                 public float cber;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct mer_t
             {
                 public float lower;
                 public float upper;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct hdc_t
             {
                 public uint program;
@@ -226,6 +232,7 @@ namespace Nrsc5Sharp
                 public IntPtr count; // Integer
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct audio_t
             {
                 public uint program;
@@ -233,6 +240,7 @@ namespace Nrsc5Sharp
                 public IntPtr count; //Integer
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct id3_t
             {
                 public uint program;
@@ -257,6 +265,7 @@ namespace Nrsc5Sharp
                 }
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct lot_t
             {
                 public ushort port;
@@ -267,11 +276,13 @@ namespace Nrsc5Sharp
                 public IntPtr data; //Ptr to bytes
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct sig_t
             {
-                public IntPtr services; //Ptr to nrsc5_sig_service_t
+                public nrsc5_sig_service_t* services;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct sis_t
             {
                 public IntPtr country_code; //Ptr to string
@@ -287,6 +298,7 @@ namespace Nrsc5Sharp
                 public IntPtr data_services; //Ptr to nrsc5_sis_dsd_t
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct lot_progress_t
             {
                 public ushort port;

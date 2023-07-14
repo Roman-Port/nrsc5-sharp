@@ -8,7 +8,7 @@ namespace Nrsc5Sharp
 {
     internal unsafe class Nrsc5EntityWrappers
     {
-        private static string StringOrNull(IntPtr str)
+        public static string StringOrNull(IntPtr str)
         {
             if (str == IntPtr.Zero)
                 return null;
