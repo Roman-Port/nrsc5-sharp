@@ -16,6 +16,27 @@ namespace Nrsc5Sharp
                 return Marshal.PtrToStringAnsi(str);
         }
 
+        public class DisposableWrapper : IDisposable
+        {
+            public DisposableWrapper()
+            {
+                isValid = true;
+            }
+
+            private bool isValid;
+
+            protected void EnsurePointersValid()
+            {
+                if (!isValid)
+                    throw new ObjectDisposedException(GetType().FullName);
+            }
+
+            public void Dispose()
+            {
+                isValid = false;
+            }
+        }
+
         public class Id3EventInfoImpl : IId3EventInfo
         {
             public Id3EventInfoImpl(Nrsc5Native.nrsc5_event_t.id3_t* info)
@@ -130,82 +151,70 @@ namespace Nrsc5Sharp
             }
         }
 
-        public class LotProgressInfoImpl : ILotProgressInfo, IDisposable
+        public class LotProgressInfoImpl : DisposableWrapper, ILotProgressInfo
         {
             public LotProgressInfoImpl(Nrsc5Native.nrsc5_event_t.lot_progress_t* info)
             {
-                port = info->port;
-                lot = info->lot;
-                seq = info->seq;
-                file = (Nrsc5Native.nrsc5_aas_file_t*)info->file;
+                this.info = *info;
             }
 
-            private readonly ushort port;
-            private readonly ushort lot;
-            private readonly uint seq;
-            private Nrsc5Native.nrsc5_aas_file_t* file;
+            private readonly Nrsc5Native.nrsc5_event_t.lot_progress_t info;
 
-            public ushort Port => port;
+            /// <summary>
+            /// The port this fragment arrived in.
+            /// </summary>
+            public ushort Port => info.port;
 
-            public ushort Lot => lot;
+            /// <summary>
+            /// The LOT ID of this fragment.
+            /// </summary>
+            public uint Lot => info.lot;
 
-            public uint Seq => seq;
+            /// <summary>
+            /// Sequence number of this fragment, starting at 0.
+            /// </summary>
+            public uint Seq => info.seq;
 
-            public IAasFile File
+            /// <summary>
+            /// Payload of this fragment.
+            /// </summary>
+            public byte[] FragmentData
             {
                 get
                 {
-                    if (file == null)
-                        throw new ObjectDisposedException(GetType().FullName);
-                    return new AasFileImpl(file);
+                    EnsurePointersValid();
+                    byte[] data = new byte[info.fragment_size];
+                    Marshal.Copy((IntPtr)info.fragment_data, data, 0, data.Length);
+                    return data;
                 }
             }
 
-            public void Dispose()
-            {
-                //Mark pointers as invalid
-                file = null;
-            }
-        }
+            /// <summary>
+            /// Size of FragmentData.
+            /// </summary>
+            public uint FragmentSize => info.fragment_size;
 
-        public class AasFileImpl : IAasFile
-        {
-            public AasFileImpl(Nrsc5Native.nrsc5_aas_file_t* info)
+            /// <summary>
+            /// Pointer to the name of the LOT. May not have been received yet, in which case this value will be NULL.
+            /// </summary>
+            public string LotName
             {
-                timestamp = info->timestamp;
-                name = info->name == IntPtr.Zero ? null : Marshal.PtrToStringAnsi(info->name);
-                mime = info->mime;
-                lot = info->lot;
-                size = info->size;
-                fragments = new byte[256][];
-                for (int i = 0; i < fragments.Length; i++)
+                get
                 {
-                    if (info->fragments[i] != null)
-                    {
-                        fragments[i] = new byte[256];
-                        Marshal.Copy((IntPtr)info->fragments[i], fragments[i], 0, fragments[i].Length);
-                    }
+                    EnsurePointersValid();
+                    return StringOrNull((IntPtr)info.lot_name);
                 }
             }
 
-            private readonly uint timestamp;
-            private readonly string name;
-            private readonly uint mime;
-            private readonly ushort lot;
-            private readonly uint size;
-            private readonly byte[][] fragments;
+            /// <summary>
+            /// MIME type hash for this LOT. May not have been received yet, in which case this value will be 0.
+            /// </summary>
+            public uint LotMime => info.lot_mime;
 
-            public uint Timestamp => timestamp;
-
-            public string Name => name;
-
-            public uint Mime => mime;
-
-            public ushort Lot => lot;
-
-            public uint Size => size;
-
-            public byte[][] Fragments => fragments;
+            /// <summary>
+            /// Size of this LOT in bytes. May not have been received yet, in which case this value will be 0.
+            /// </summary>
+            public uint LotSize => info.lot_size;
         }
     }
 }

@@ -197,17 +197,6 @@ namespace Nrsc5Sharp
             Nrsc5Native.nrsc5_stop(Handle);
         }
 
-        public IAasFile GetLot(ushort port, ushort lot)
-        {
-            //Attempt to get native pointer
-            nrsc5_aas_file_t* info = Nrsc5Native.nrsc5_get_lot(Handle, port, lot);
-            if (info == null)
-                return null;
-
-            //Wrap
-            return new Nrsc5EntityWrappers.AasFileImpl(info);
-        }
-
         /// <summary>
         /// Gets the name of a specified service data type.
         /// </summary>

@@ -156,16 +156,6 @@ namespace Nrsc5Sharp
             public uint mime_type;
         }
 
-        public struct nrsc5_aas_file_t
-        {
-            public uint timestamp;
-            public IntPtr name;
-            public uint mime;
-            public ushort lot;
-            public uint size;
-            public byte** fragments;
-        }
-
         [StructLayout(LayoutKind.Explicit)]
         public struct nrsc5_event_t
         {
@@ -301,10 +291,16 @@ namespace Nrsc5Sharp
             [StructLayout(LayoutKind.Sequential)]
             public struct lot_progress_t
             {
-                public ushort port;
-                public ushort lot;
-                public uint seq;
-                public IntPtr file; //Ptr to nrsc5_aas_file_t
+                public ushort port; // The port this fragment arrived in.
+                public uint lot; // The LOT ID of this fragment.
+                public uint seq; // Sequence number of this fragment, starting at 0.
+
+                public byte* fragment_data; // Payload of this fragment.
+                public uint fragment_size; // Size of this fragment's data and the "fragment_data" property.
+
+                public char* lot_name; // Pointer to the name of the LOT. May not have been received yet, in which case this value will be NULL.
+                public uint lot_mime; // MIME type hash for this LOT. May not have been received yet, in which case this value will be 0.
+                public uint lot_size; // Size of this LOT in bytes. May not have been received yet, in which case this value will be 0.
             }
         }
 
@@ -375,8 +371,5 @@ namespace Nrsc5Sharp
 
         [DllImport(NRSC5_DLL)]
         public static extern int nrsc5_pipe_samples_cs16(IntPtr ctx/* Ptr to nrsc5_t */, short* samples, uint length);
-
-        [DllImport(NRSC5_DLL)]
-        public static extern nrsc5_aas_file_t* nrsc5_get_lot(IntPtr ctx/* Ptr to nrsc5_t */, ushort port, ushort lot);
     }
 }
